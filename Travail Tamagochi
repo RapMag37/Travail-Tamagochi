@@ -1,0 +1,117 @@
+import streamlit as st
+import random
+import time
+
+if 'Fatigue' not in st.session_state:
+    st.session_state['Fatigue'] = random.randint(80, 100)
+
+if 'Faim' not in st.session_state:
+    st.session_state['Faim'] = random.randint(80, 100)
+
+if 'Hygiène' not in st.session_state:
+    st.session_state['Hygiène'] = random.randint(80, 100)
+
+if 'Besoins' not in st.session_state:
+    st.session_state['Besoins'] = random.randint(80, 100)
+
+if 'Bonheur' not in st.session_state:
+    st.session_state['Bonheur'] = random.randint(80, 100)
+
+image_initial = 'kaaris_debut1.png'
+image_fatigue = 'kaaris_dort1.png'
+image_faim = 'kaaris_mange1.png'
+image_hygiene = 'kaaris_douche1.png'
+image_besoins = 'kaaris_toilettes1.png'
+image_bonheur = 'kaaris_triste1.png'
+
+def update_parameter(parameter_name, max_value=100, min_value=0):
+    if parameter_name not in st.session_state:
+        st.session_state[parameter_name] = random.randint(min_value, max_value)
+
+    barre_prog = st.progress(st.session_state[parameter_name], f"{parameter_name}:")
+    if st.session_state[parameter_name] <= 0:
+        st.write("<p style='color:red;font-size:30px;'>Perdu</p>", unsafe_allow_html=True)
+        st.success("Sa carrière est foutue, Kaaris est finito")
+        st.stop()
+
+    if st.session_state[parameter_name] < 50:
+        if parameter_name == 'Fatigue':
+            st.image(image_fatigue, caption="Kaaris est fatigué !", use_column_width=True, width=50)
+        elif parameter_name == 'Faim':
+            st.image(image_faim, caption="Kaaris a faim !", use_column_width=True, width=50)
+        elif parameter_name == 'Hygiène':
+            st.image(image_hygiene, caption="Kaaris est sale !", use_column_width=True, width=50)
+        elif parameter_name == 'Besoins':
+            st.image(image_besoins, caption="Kaaris doit aller aux toilettes !", use_column_width=True, width=50)
+        elif parameter_name == 'Bonheur':
+            st.image(image_bonheur, caption="Kaaris est triste, il veut jouer !", use_column_width=True, width=50)
+
+    barre_prog.progress(st.session_state[parameter_name], f"{parameter_name}")
+    st.session_state[parameter_name] = max(min_value, st.session_state[parameter_name] - random.randint(1, 5))
+
+def main():
+    update_parameter('Fatigue')
+    update_parameter('Faim')
+    update_parameter('Hygiène')
+    update_parameter('Besoins')
+    update_parameter('Bonheur')
+
+    if all(bar > 50 for bar in [st.session_state['Fatigue'], st.session_state['Faim'],
+                                st.session_state['Hygiène'], st.session_state['Besoins'], st.session_state['Bonheur']]):
+        st.image(image_initial, caption="Kaaris va très bien !", use_column_width=True, width=50)
+
+    time.sleep(5)
+    st.rerun()
+
+
+def pile_ou_face():
+    choix_utilisateur = st.radio("Choisissez Pile ou Face :", ("Pile", "Face"))
+    resultat = random.choice(["Pile", "Face"])
+    st.write(f"Résultat : {resultat}")
+    if choix_utilisateur == resultat:
+        st.success("Bravo, vous avez gagné !")
+        st.session_state['Bonheur'] = min(100, st.session_state['Bonheur'] + 100)
+    else:
+        st.error("Dommage, vous avez perdu.")
+        st.session_state['Bonheur'] = min(100, st.session_state['Bonheur'] + 100)
+
+def pierre_feuille_ciseaux():
+    choix_utilisateur = st.selectbox("Choisissez Pierre, Feuille, ou Ciseaux :", ("Pierre", "Feuille", "Ciseaux"))
+    choix_ordinateur = random.choice(["Pierre", "Feuille", "Ciseaux"])
+    st.write(f"Choix de Kaaris : {choix_ordinateur}")
+    if choix_utilisateur == choix_ordinateur:
+        st.warning("Égalité !")
+        st.session_state['Bonheur'] = min(100, st.session_state['Bonheur'] + 100)
+    elif (
+        (choix_utilisateur == "Pierre" and choix_ordinateur == "Ciseaux") or
+        (choix_utilisateur == "Feuille" and choix_ordinateur == "Pierre") or
+        (choix_utilisateur == "Ciseaux" and choix_ordinateur == "Feuille")
+    ):
+        st.success("Bravo, vous avez gagné !")
+        st.session_state['Bonheur'] = min(100, st.session_state['Bonheur'] + 100)
+    else:
+        st.error("Dommage, vous avez perdu.")
+        st.session_state['Bonheur'] = min(100, st.session_state['Bonheur'] + 100)
+
+
+with st.sidebar:
+    st.title('Actions')
+    if st.button('Se reposer'):
+        st.session_state['Fatigue'] = min(100, st.session_state['Fatigue'] + random.randint(50, 100))
+    if st.button('Manger'):
+        st.session_state['Faim'] = min(100, st.session_state['Faim'] + random.randint(50, 100))
+    if st.button('Se laver'):
+        st.session_state['Hygiène'] = min(100, st.session_state['Hygiène'] + random.randint(50, 100))
+    if st.button('Faire ses besoins'):
+        st.session_state['Besoins'] = min(100, st.session_state['Besoins'] + random.randint(50, 100))
+    if st.button('Jouer'):
+        jeu = st.selectbox("", ("Pile ou Face", "Pierre, Feuille, Ciseau"), index=None, placeholder="Choisissez un jeu",)
+        if jeu == "Pile ou Face":
+            pile_ou_face()
+        elif jeu == "Pierre, Feuille, Ciseau":
+            pierre_feuille_ciseaux()
+
+
+
+if __name__ == "__main__":
+    main()
